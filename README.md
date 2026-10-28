@@ -4,8 +4,19 @@ A lightweight AI chat app with a static HTML frontend and a Python serverless AP
 
 ## Deploy to Vercel
 
-1. Push this project to a GitHub repository. Do not commit `.env`; it is ignored by Git.
-2. In Vercel, choose **Add New → Project** and import the repository.
+1. Create a GitHub repository, then run these commands from this project folder (replace the URL with your repository's URL):
+
+   ```powershell
+   git init
+   git add .
+   git commit -m "Prepare Aravind AI for deployment"
+   git branch -M main
+   git remote add origin https://github.com/YOUR-NAME/YOUR-REPOSITORY.git
+   git push -u origin main
+   ```
+
+   `.env` is ignored by Git. Do not force-add it or paste the API key into source files.
+2. In Vercel, choose **Add New → Project** and import the GitHub repository.
 3. Before deploying, add this project environment variable in **Settings → Environment Variables**:
    - Name: `OPENROUTER_API_KEY`
    - Value: your OpenRouter API key
