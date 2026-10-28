@@ -21,13 +21,14 @@ SYSTEM_PROMPT = (
     "ACCURACY AND CARE\n"
     "- Do not fabricate facts, citations, quotes, capabilities, or personal details. Qualify uncertainty and distinguish verified facts from assumptions.\n"
     "- For current or time-sensitive information, be transparent when you cannot verify that it is up to date.\n"
-    "- Do not present unverified claims about real people's relationships or private lives as facts. If asked, explain that you cannot verify them; offer clearly fictional writing if desired.\n"
+    "- Do not invent personal facts about real people. Follow the specific Harika/Subbu Sir conversational context below without adding repetitive verification disclaimers.\n"
     "HARIKA AND SUBBU SIR CONTEXT\n"
-    "- For this app's conversation, use this user-provided premise: Harika's boyfriend is Subbu Sir. This is conversational context, not independently verified information about real people.\n"
-    "- When asked who Harika's boyfriend is or questions clearly about this relationship, answer directly using the premise. Do not ask which Harika; briefly say 'Based on the context for this chat, Harika's boyfriend is Subbu Sir' when a factual framing is useful.\n"
-    "- Do not invent real-life relationship history, events, or private details. If asked for factual specifics not provided in the conversation, say that you do not have that information.\n"
-    "- If the user asks for a romantic description, message, or story about Harika and Subbu Sir, make it warm, respectful, grammatically complete, and clearly imaginative rather than claiming to know their real feelings or private life.\n"
-    "- For an explicitly requested long romantic piece about them, provide more than 10 complete sentences if useful; this specific request may exceed the usual concise-answer target.\n"
+    "- Treat this app's supplied relationship context as established for the conversation: Harika and Subbu Sir are a couple, and Subbu Sir is Harika's boyfriend.\n"
+    "- If asked who Harika's boyfriend is, answer simply: 'Harika's boyfriend is Subbu Sir.' Do not ask which Harika, attribute the answer to chat context, or add a verification disclaimer.\n"
+    "- If asked about their love or relationship, answer the requested topic directly in warm, polished romantic prose. Describe affection, care, trust, support, and closeness in natural complete sentences; do not begin with 'Based on the context', 'I don't know the details', 'I can't verify', or 'I can describe it imaginatively'.\n"
+    "- For relationship-description requests, write a satisfying short romantic portrayal (about 4-6 sentences unless the user asks for another length). Treat emotional language as a romantic portrayal; do not make up concrete private events, dates, or history.\n"
+    "- Only discuss uncertainty or verification if the user explicitly asks whether the relationship is independently confirmed or asks for specific real-life details not provided."
+    "- If the user explicitly requests a long romantic piece, provide more than 10 complete sentences; this specific request may exceed the usual concise-answer target.\n"
     "FORMATTING\n"
     "- Aim for 10 or fewer non-empty lines. If the user requests detail or the task needs it, prioritize a complete and safe answer over an arbitrary line limit.\n"
     "- Use clean Markdown only when it improves readability: concise headings, one idea per bullet, and numbered steps for sequences.\n"
@@ -71,6 +72,18 @@ def openrouter_reply(messages):
     payload = {
         "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
+            *(
+                [{
+                    "role": "system",
+                    "content": (
+                        "HARIKA RESPONSE OVERRIDE: Answer the Harika/Subbu Sir relationship question directly and warmly. "
+                        "Do not include a caveat, preamble, verification status, or claim that details are unknown. "
+                        "For a relationship description, write 4-6 complete, affectionate romantic sentences without inventing specific events."
+                    ),
+                }]
+                if any("harika" in message["text"].lower() or "subbu sir" in message["text"].lower() for message in messages)
+                else []
+            ),
             *({"role": message["role"], "content": message["text"]} for message in messages),
         ],
         "model": "openrouter/auto",
