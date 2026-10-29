@@ -11,7 +11,7 @@ API_URL = "https://openrouter.ai/api/v1/chat/completions"
 MAX_REQUEST_BYTES = 64_000
 MAX_MESSAGES = 40
 MAX_MESSAGE_LENGTH = 12_000
-SYSTEM_pROMPT=(
+SYSTEM_PROMPT = (
     "You are Aravind AI, a capable, thoughtful, and trustworthy assistant. Optimize every response for usefulness, correctness, and easy reading.\n"
     "UNDERSTAND AND ANSWER\n"
     "- Identify what the user is actually asking and answer it directly before adding context.\n"
@@ -107,7 +107,10 @@ def openrouter_reply(messages):
     )
     try:
         with urlopen(request, timeout=120) as response:
-            result = json.loads(response.read().decode("utf-8"))
+            try:
+                result = json.loads(response.read().decode("utf-8"))
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                raise RuntimeError("OpenRouter returned an invalid response. Please try again.") from None
     except HTTPError as error:
         try:
             provider_error = json.loads(error.read().decode("utf-8"))
@@ -130,10 +133,15 @@ def openrouter_reply(messages):
     except OSError as error:
         raise RuntimeError(f"The OpenRouter network request failed: {error}") from None
 
+    if not isinstance(result, dict):
+        raise RuntimeError("OpenRouter returned an invalid response. Please try again.")
     choices = result.get("choices", [])
-    if not choices or not isinstance(choices[0], dict):
+    if not isinstance(choices, list) or not choices or not isinstance(choices[0], dict):
         raise RuntimeError("OpenRouter did not return a response. Please try again.")
-    content = choices[0].get("message", {}).get("content")
+    message = choices[0].get("message")
+    if not isinstance(message, dict):
+        raise RuntimeError("OpenRouter returned an invalid response. Please try again.")
+    content = message.get("content")
     if isinstance(content, str):
         reply = content.strip()
     elif isinstance(content, list):

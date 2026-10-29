@@ -899,7 +899,22 @@
               .map(({ role, text }) => ({ role, text }))
           })
         });
-        const result = await response.json();
+        const contentType = response.headers.get("content-type") || "";
+        if (!contentType.toLowerCase().includes("application/json")) {
+          throw new Error(
+            `The server returned an unexpected response (HTTP ${response.status}). ` +
+            "Restart the local server or check the deployed function logs, then try again."
+          );
+        }
+        let result;
+        try {
+          result = await response.json();
+        } catch (error) {
+          if (error instanceof SyntaxError) {
+            throw new Error("The server returned invalid JSON. Restart the server or check its logs, then try again.");
+          }
+          throw error;
+        }
         if (!response.ok) {
           throw new Error(result.error || "The OpenRouter request failed.");
         }
